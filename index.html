@@ -1,0 +1,65 @@
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<div class="jumbotron"><h1>IP Scanner</h1></div>
+<br>
+<div id="btn-group-horizontal">
+  <button class="btn btn-primary" type="button" onclick="loadips();">Load IPs from access log</button>
+  <button type="button" class="btn btn-primary" onclick="clearlist();">Clear list</button>
+  <button type="button" class="btn btn-primary" onclick="startwhois();">Calculate Whois</button>
+</div>
+<br>
+<div id="content">
+</div>
+
+<script>
+function loadips(){
+  sendGet('http://143.198.124.64/ipscan/backend.php?cnt=loadips');
+}
+
+function clearlist() {
+  sendGet('http://143.198.124.64/ipscan/backend.php?cnt=clearlog');
+}
+function startwhois(){
+  var ipstring = document.getElementById('content').innerHTML;
+  if (ipstring == ''){
+    document.getElementById('content').innerHTML = 'load ips first..';
+  }
+
+  var iplist = ipstring.split('<br>');
+  //create http client
+  var httpq = new HttpClient();
+  var i = 0;
+  stringhtml = ''
+  for (i = 0; i < iplist.length; i++){
+    httpq.get('http://143.198.124.64/ipscan/backend.php?cnt=getwhois&ip=' + iplist[i], function(response){
+      stringhtml += response;
+      document.getElementById('content').innerHTML = stringhtml;
+})}}
+var HttpClient = function() { //ReUsable http requester
+  this.get = function(aUrl, aCallback){
+    var anHttpRequest = new XMLHttpRequest();
+    anHttpRequest.onreadystatechange =function() {
+      if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+        aCallback(anHttpRequest.responseText);
+    }
+    anHttpRequest.open( "GET", aUrl, true);
+    anHttpRequest.send( null );
+  }
+}
+function sendGet(datatext){
+  var req = new XMLHttpRequest();
+  req.addEventListener('load', setContent);
+  req.open("GET", datatext);
+  req.send();
+}
+
+function setContent(){
+  document.getElementById('content').innerHTML = this.responseText;
+}
+
+</script>
